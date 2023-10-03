@@ -8,17 +8,32 @@ import ast
 import openai
 import streamlit as st
 
-
+def check_api_key(api_key_input):
+    openai.api_key = api_key_input
+    try:
+        response = openai.Completion.create(
+            engine="davinci",
+            prompt="This is a test.",
+            max_tokens=5
+        )
+    except:
+        st.warning("Please enter a correct OPEN-AI api-key; Check for spaces or spelling mistakes",icon = "🚨")
+    else:
+        return True
 
 def create_llm(api_key_input):
-    global model
-    try:
-        response = openai.Completion.create(engine="gpt4",prompt="This is a test.",max_tokens=5)
-    except:
-        model = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0, openai_api_key=api_key_input)
+    if check_api_key(api_key_input):
+        global model
+        try:
+            response = openai.Completion.create(engine="gpt4",prompt="This is a test.",max_tokens=5)
+        except:
+            model = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0, openai_api_key=api_key_input)
+            return True
+        else:
+            model = ChatOpenAI(model_name="gpt-4", temperature=0, openai_api_key=api_key_input)
+            return True
     else:
-        model = ChatOpenAI(model_name="gpt-4", temperature=0, openai_api_key=api_key_input)
-
+        return False
 
 def outline_guided(keywords, query):
     prompt = f"""You are an expert in detecting whether a query is relevant to dictionary of keywords :{keywords}
