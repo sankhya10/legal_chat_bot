@@ -5,13 +5,19 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.schema import HumanMessage, SystemMessage
 from termcolor import colored
 import ast
-
+import openai
 import streamlit as st
+
 
 
 def create_llm(api_key_input):
     global model
-    model = ChatOpenAI(model_name="gpt-4", temperature=0, openai_api_key=api_key_input)
+    try:
+        response = openai.Completion.create(engine="gpt4",prompt="This is a test.",max_tokens=5)
+    except:
+        model = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0, openai_api_key=api_key_input)
+    else:
+        model = ChatOpenAI(model_name="gpt-4", temperature=0, openai_api_key=api_key_input)
 
 
 def outline_guided(keywords, query):
