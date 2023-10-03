@@ -51,8 +51,6 @@ with st.sidebar:
         or st.session_state.get("OPENAI_API_KEY", ""),
     )
 
-if len(api_key_input) > 0:
-    create_llm(api_key_input)
 
 
 def clear_query():
@@ -186,6 +184,7 @@ if __name__ == "__main__":
             if len(api_key_input) == 0:
                 st.warning("Please enter your OPEN-AI API key at sidebar and press enter",icon = "🚨")
             else:
+                create_llm(api_key_input)
                 with placeholder.container():
                     message(user_input, is_user=True, key=str(19) + "_user")
                 refine = outline_guided(law_dict, user_input).content
