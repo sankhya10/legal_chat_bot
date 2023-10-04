@@ -41,6 +41,7 @@ with st.sidebar:
     st.markdown(
         "## How to use\n"
         "1. Enter your [OpenAI API key](https://platform.openai.com/account/api-keys) below🔑\n"
+        "2. Optimized for GPT-4: 🚀 GPT-3 and 3.5 might encounter occasional quirks and problems"
     )
     api_key_input = st.text_input(
         "OpenAI API Key",

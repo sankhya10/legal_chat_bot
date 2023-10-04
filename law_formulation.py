@@ -9,18 +9,18 @@ import openai
 import streamlit as st
 
 def check_api_key(api_key_input):
-    openai.api_key = api_key_input
     try:
-        response = openai.Completion.create(
-            engine="davinci",
-            prompt="This is a test.",
-            max_tokens=5
+        openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": "test"}],
+            api_key=api_key_input,
         )
-    except:
-        st.warning("Please enter a correct OPEN-AI api-key; Check for spaces or spelling mistakes",icon = "🚨")
+    except Exception as e:
+        st.error(f"{e.__class__.__name__}: {e}")
+        return False
     else:
         return True
-
+    
 def create_llm(api_key_input):
     if check_api_key(api_key_input):
         global model
