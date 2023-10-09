@@ -208,21 +208,37 @@ def search_dict_pattern(extraction, query):
     match = re.search(pattern, extraction)
     if match:
         dictionary_str = match.group()
-        extracted_dictionary = ast.literal_eval(dictionary_str)
-        # print("extracted_dict",extracted_dictionary)
-        if isinstance(extracted_dictionary, set):
-            return extracted_dictionary.pop()
-        elif isinstance(extracted_dictionary, dict):
-            if len(extracted_dictionary.values()) == 1:
-                return (
-                    list(extracted_dictionary.keys())[0],
-                    list(extracted_dictionary.values())[0][0],
-                )
-            else:
-                value = select_value(extracted_dictionary, query)
-                return list(extracted_dictionary.keys())[0], value.content
-        elif isinstance(extracted_dictionary, tuple):
-            return extracted_dictionary[0], extracted_dictionary[1]
+        try:
+            extracted_dictionary = ast.literal_eval(dictionary_str)
+            # print("extracted_dict",extracted_dictionary)
+            if isinstance(extracted_dictionary, set):
+                return extracted_dictionary.pop()
+            elif isinstance(extracted_dictionary, dict):
+                if len(extracted_dictionary.values()) == 1:
+                    return (
+                        list(extracted_dictionary.keys())[0],
+                        list(extracted_dictionary.values())[0][0],
+                    )
+                else:
+                    value = select_value(extracted_dictionary, query)
+                    return list(extracted_dictionary.keys())[0], value.content
+            elif isinstance(extracted_dictionary, tuple):
+                return extracted_dictionary[0], extracted_dictionary[1]
+        except  (SyntaxError, ValueError):
+             pattern = r'\{[^{}]*\}'
+             matches = re.findall(pattern, dictionary_str)
+             if matches:
+                extracted_dictionary = ast.literal_eval(dictionary_str)
+                if isinstance(extracted_dictionary, dict):
+                    if len(extracted_dictionary.values()) == 1:
+                        return (
+                            list(extracted_dictionary.keys())[0],
+                            list(extracted_dictionary.values())[0][0],
+                            )
+                    else:
+                        value = select_value(extracted_dictionary, query)
+                        return list(extracted_dictionary.keys())[0], value.content
+
     else:
         return extraction
 

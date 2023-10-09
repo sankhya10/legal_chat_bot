@@ -136,19 +136,48 @@ def create_legal_url(type, location, law_dict, expertise, third_key):
                         url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={list(item.keys())[0]}&specialised={list(item.values())[0]}"
                         return url
     else:
-        third_key = third_key.lower()
-        if " " in third_key:
-            third_key = third_key.replace(" ", "-")
-        if "personal" in type:
-            if expertise in business:
-                url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={expertise}-personal-law&specialised={third_key}"
-                return url
-            else:
+        if isinstance(third_key,str):
+            third_key = third_key.lower()
+            if " " in third_key:
+                third_key = third_key.replace(" ", "-")
+            if "personal" in type:
+                if expertise in business:
+                    url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={expertise}-personal-law&specialised={third_key}"
+                    return url
+                else:
+                    url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={expertise}&specialised={third_key}"
+                    return url
+            elif "business" in type:
                 url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={expertise}&specialised={third_key}"
                 return url
-        elif "business" in type:
-            url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={expertise}&specialised={third_key}"
-            return url
+        elif isinstance(third_key,dict):
+            if "personal" in type:
+                if list(third_key.keys())[0] in  business:
+                    url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={list(third_key.keys())[0]}-personal-law&specialised={third_key[f'{list(third_key.keys())[0]}'][0]}"
+                    return url
+                else:
+                    url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={list(third_key.keys())[0]}&specialised={third_key[f'{list(third_key.keys())[0]}'][0]}"
+                    return url
+            elif "business" in type:
+                url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={list(third_key.keys())[0]}&specialised={third_key[f'{list(third_key.keys())[0]}'][0]}"
+                return url
+        elif isinstance(third_key,set):
+            third_key = next(iter(third_key))
+            if isinstance(expertise,set):
+                expertise = next(iter(expertise))
+            third_key = third_key.lower()
+            if " " in third_key:
+                third_key = third_key.replace(" ", "-")
+            if "personal" in type:
+                if expertise in business:
+                    url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={expertise}-personal-law&specialised={third_key}"
+                    return url
+                else:
+                    url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={expertise}&specialised={third_key}"
+                    return url
+            elif "business" in type:
+                url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={expertise}&specialised={third_key}"
+                return url
 
 
 if __name__ == "__main__":
