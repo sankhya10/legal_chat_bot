@@ -13,7 +13,6 @@ from streamlit.components.v1 import html
 import os
 from langchain.chat_models import ChatOpenAI
 from law_formulation import *
-from streamlit_keycloak import login
 
 st.set_page_config(
         page_title="Legally Yours: ChatBot",
