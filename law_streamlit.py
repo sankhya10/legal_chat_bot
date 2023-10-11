@@ -100,24 +100,27 @@ def main():
         personal = []
         for item in law_dict["business-law"]:
             if isinstance(item, set):
-                business.append(item[0])
+                business.append(next(iter(item)))
             if isinstance(item, dict):
-                business.append(list(item.keys()[0]))
+                business.append(list(item.keys())[0])
 
         for item in law_dict["personal-law"]:
             if isinstance(item, set):
-                personal.append(item[0])
+                personal.append(next(iter(item)))
             if isinstance(item, dict):
-                personal.append(list(item.keys()[0]))
+                personal.append(list(item.keys())[0])
         return business, personal
 
 
     def create_legal_url(type, location, law_dict, expertise, third_key):
-        business, personal = law_dict
+        business, personal = create_law_list(law_dict)
         if third_key == None:
             for item in law_dict[f"{type}"]:
                 if isinstance(item, set):
-                    if expertise in item:
+                    item_copy = next(iter(item))
+                    item_copy = item_copy.lower()
+                    expertise_copy = expertise.lower()
+                    if expertise_copy in item_copy:
                         current_item = item.pop()
                         current_item = current_item.lower()
                         if " " in current_item:
@@ -131,22 +134,37 @@ def main():
                                 return url
                         elif "business" in type:
                             url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={current_item}&specialised="
-                            return url
+                            return url   
                 if isinstance(item, dict):
-                    expertise = expertise.lower()
-                    if " " in expertise:
-                        expertise = expertise.replace(" ", "-")
-                    if expertise in list(item.keys()):
-                        if "personal" in type:
-                            if list(item.keys())[0] in business:
-                                url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={list(item.keys())[0]}-personal-law&specialised={list(item.values())[0]}"
+                        for key_pair,value_pair in item.items():
+                            value_copy = value_pair
+                            value_copy = [element.lower() for element in value_copy]
+                            value_copy = [ele.replace(" ","-") for ele in value_copy]
+                            expertise = expertise.lower()
+                            if " " in expertise:
+                                expertise = expertise.replace(" ", "-")
+                            if expertise in key_pair:
+                                if "personal" in type:
+                                    if key_pair in business:
+                                        url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={key_pair}-personal-law&specialised={value_copy[0]}"
+                                        return url
+                                    else:
+                                        url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={key_pair}&specialised={value_copy[0]}"
+                                        return url
+                                elif "business" in type:
+                                    url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={key_pair}&specialised={value_copy[0]}"
+                                    return url  
+                            elif expertise in value_copy:
+                                if "personal" in type:
+                                    if key_pair in business:
+                                        url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={key_pair}-personal-law&specialised={expertise}"
+                                        return url
+                                    else:
+                                        url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={key_pair}&specialised={expertise}"
+                                        return url
+                            elif "business" in type:
+                                url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={key_pair}&specialised={expertise}"
                                 return url
-                            else:
-                                url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={list(item.keys())[0]}&specialised={list(item.values())[0]}"
-                                return url
-                        elif "business" in type:
-                            url = f"https://legallyyours.com.au/lawyers/?location={location}&expertise={list(item.keys())[0]}&specialised={list(item.values())[0]}"
-                            return url
         else:
             if isinstance(third_key,str):
                 third_key = third_key.lower()
@@ -177,6 +195,9 @@ def main():
                 third_key = next(iter(third_key))
                 if isinstance(expertise,set):
                     expertise = next(iter(expertise))
+                    expertise = expertise.lower()
+                    if " " in expertise:
+                        expertise = expertise.replace(" ", "-")
                 third_key = third_key.lower()
                 if " " in third_key:
                     third_key = third_key.replace(" ", "-")
@@ -250,152 +271,168 @@ def main():
                                         extracted_answer = refine_keywords(
                                             law_dict["business-law"], user_input
                                         ).content
-                                        try:
-                                            sec_key, third_key = search_dict_pattern(
-                                                extracted_answer, user_input
-                                            )
-                                            if len(third_key) > 40:
-                                                rel_answer = identify_answer(
-                                                    law_dict["business-law"], third_key
-                                                ).content
-                                                st.write("Length of rel_answer", len(rel_answer))
-                                                rel_answer = rel_answer.lower()
-                                                if "no" in rel_answer:
-                                                    url = create_legal_url(
-                                                        "business-law",
-                                                        option,
-                                                        law_dict,
-                                                        sec_key,
-                                                        None,
-                                                    )
-                                                    response = f"""The keywords that you can explore : business-law :{sec_key} /
-                                                                url: {url}"""
+                                        if len(extracted_answer) == 2:
+                                            current_message = "Your query is related to buinsess law. However we can't find any services that aligns to your query"
+                                            with placeholder.container():
+                                                message(user_input, is_user=True, key=str(30) + "_user")
+                                                message(current_message, key=str(20))
+                                        else:
+                                            try:
+                                                sec_key, third_key = search_dict_pattern(
+                                                    extracted_answer, user_input
+                                                )
+                                                if len(third_key) > 60:
+                                                    rel_answer = identify_answer(
+                                                        law_dict["business-law"], third_key
+                                                    ).content
+                                                    rel_answer = rel_answer.lower()
+                                                    if "no" in rel_answer:
+                                                        url = create_legal_url(
+                                                            "business-law",
+                                                            option,
+                                                            law_dict,
+                                                            sec_key,
+                                                            None,
+                                                        )
+                                                        response = f"""The keywords that you can explore : business-law :{sec_key} /
+                                                                    url: {url}"""
+                                                    else:
+                                                        url = create_legal_url(
+                                                            "business-law",
+                                                            option,
+                                                            law_dict,
+                                                            sec_key,
+                                                            rel_answer,
+                                                        )
+                                                        response = f"""The appropiate keywords for query are : business-law :{sec_key}:{rel_answer} /
+                                                                    url: {url}"""
                                                 else:
                                                     url = create_legal_url(
                                                         "business-law",
                                                         option,
                                                         law_dict,
                                                         sec_key,
-                                                        rel_answer,
+                                                        third_key,
                                                     )
-                                                    response = f"""The appropiate keywords for query are : business-law :{sec_key}:{rel_answer} /
+                                                    response = f"""The appropiate keywords for your query are : business-law : {sec_key} : {third_key} /
                                                                 url: {url}"""
-                                            else:
-                                                url = create_legal_url(
-                                                    "business-law",
-                                                    option,
-                                                    law_dict,
-                                                    sec_key,
-                                                    third_key,
-                                                )
-                                                response = f"""The appropiate keywords for your query are : business-law : {sec_key} : {third_key} /
-                                                            url: {url}"""
 
-                                        except ValueError:
-                                            answer = search_dict_pattern(
-                                                extracted_answer, user_input
-                                            )
-                                            if len(answer) > 30:
-                                                rel_answer = identify_answer(
-                                                    law_dict["business-law"], answer
-                                                ).content
-                                                rel_answer = rel_answer.lower()
-                                                if "no" in rel_answer:
-                                                    response = "Sorry we can't find appropiate keywords for your query Please modify your query to blend with our services"
+                                            except ValueError:
+                                                answer = search_dict_pattern(
+                                                    extracted_answer, user_input
+                                                )
+                                                if len(answer) > 60:
+                                                    rel_answer = identify_answer(
+                                                        law_dict["business-law"], answer
+                                                    ).content
+                                                    rel_answer = rel_answer.lower()
+                                                    if "no" in rel_answer:
+                                                        response = "Sorry we can't find appropiate keywords for your query Please modify your query to blend with our services"
+                                                    else:
+                                                        url = create_legal_url(
+                                                            "business-law",
+                                                            option,
+                                                            law_dict,
+                                                            rel_answer,
+                                                            None,
+                                                        )
+                                                        response = f"""The appropiate keywords for query are : business-law :{rel_answer} /
+                                                                        URL: {url}"""
                                                 else:
                                                     url = create_legal_url(
-                                                        "business-law",
-                                                        option,
-                                                        law_dict,
-                                                        rel_answer,
-                                                        None,
+                                                        "business-law", option, law_dict, answer, None
                                                     )
-                                                    response = f"""The appropiate keywords for query are : business-law :{rel_answer} /
-                                                                    URL: {url}"""
-                                            else:
-                                                url = create_legal_url(
-                                                    "business-law", option, law_dict, answer, None
-                                                )
-                                                response = f"""The appropiate keywords for query are : business-law :{answer} /
-                                                            URL: {url}"""
-                                        st.session_state.generated.append(response)
-                                        with placeholder.container():
-                                            message(user_input, is_user=True, key=str(28) + "_user")
-                                            message(response, key=str(22))
+                                                    response = f"""The appropiate keywords for query are : business-law :{answer} /
+                                                                URL: {url}"""
+                                            st.session_state.generated.append(response)
+                                            with placeholder.container():
+                                                message(user_input, is_user=True, key=str(28) + "_user")
+                                                message(response, key=str(22))
                                     if "personal" in matches[0]:
                                         extracted_answer = refine_keywords(
                                             law_dict["personal-law"], user_input
                                         ).content
-                                        try:
-                                            sec_key, third_key = search_dict_pattern(
-                                                extracted_answer, user_input
-                                            )
-                                            if len(third_key) > 40:
-                                                rel_answer = identify_answer(
-                                                    law_dict["personal-law"], third_key
-                                                ).content
-                                                # st.write("Length of rel_answer",len(rel_answer),rel_answer)
-                                                rel_answer = rel_answer.lower()
-                                                if "no" in rel_answer:
-                                                    url = create_legal_url(
-                                                        "personal-law",
-                                                        option,
-                                                        law_dict,
-                                                        sec_key,
-                                                        None,
-                                                    )
-                                                    response = f"""The keywords that you can explore : personal-law :{sec_key} /
-                                                                    URL: {url}"""
+                                        if len(extracted_answer) == 2:
+                                            current_message = "Your query is related to personal law. However we can't find any services that aligns to your query"
+                                            with placeholder.container():
+                                                message(user_input, is_user=True, key=str(30) + "_user")
+                                                message(current_message, key=str(20))
+                                        else:        
+                                            try:
+                                                sec_key, third_key = search_dict_pattern(
+                                                    extracted_answer, user_input
+                                                )
+                                                if len(third_key) > 60:
+                                                    rel_answer = identify_answer(
+                                                        law_dict["personal-law"], third_key
+                                                    ).content
+                                                    rel_answer = rel_answer.lower()
+                                                    if "no" in rel_answer:
+                                                        url = create_legal_url(
+                                                            "personal-law",
+                                                            option,
+                                                            law_dict,
+                                                            sec_key,
+                                                            None,
+                                                        )
+                                                        response = f"""The keywords that you can explore : personal-law :{sec_key} /
+                                                                        URL: {url}"""
+                                                    else:
+                                                        url = create_legal_url(
+                                                            "personal-law",
+                                                            option,
+                                                            law_dict,
+                                                            sec_key,
+                                                            rel_answer,
+                                                        )
+                                                        response = f"""The appropiate keywords for query are : personal-law :{sec_key}:{rel_answer} /
+                                                                        URL:  {url}"""
                                                 else:
                                                     url = create_legal_url(
                                                         "personal-law",
                                                         option,
                                                         law_dict,
                                                         sec_key,
-                                                        rel_answer,
+                                                        third_key,
                                                     )
-                                                    response = f"""The appropiate keywords for query are : personal-law :{sec_key}:{rel_answer} /
-                                                                    URL:  {url}"""
-                                            else:
-                                                url = create_legal_url(
-                                                    "personal-law",
-                                                    option,
-                                                    law_dict,
-                                                    sec_key,
-                                                    third_key,
+                                                    if isinstance(third_key,dict):
+                                                        sec_key = list(third_key.keys())[0]
+                                                        third_key = third_key[f'{list(third_key.keys())[0]}'][0]
+                                                        response = f"""The appropiate keywords for your query are : personal-law : {sec_key} : {third_key} /
+                                                                URL: {create_legal_url("personal-law",option,law_dict,sec_key,third_key)}"""
+                                                    else:    
+                                                        response = f"""The appropiate keywords for your query are : personal-law : {sec_key} : {third_key} /
+                                                                    URL: {url}"""
+                                            except ValueError:
+                                                answer = search_dict_pattern(
+                                                    extracted_answer, user_input
                                                 )
-                                                response = f"""The appropiate keywords for your query are : personal-law : {sec_key} : {third_key} /
-                                                            URL: {url}"""
-                                        except ValueError:
-                                            answer = search_dict_pattern(
-                                                extracted_answer, user_input
-                                            )
-                                            if len(answer) > 30:
-                                                rel_answer = identify_answer(
-                                                    law_dict["personal-law"], answer
-                                                ).content
-                                                rel_answer = rel_answer.lower()
-                                                if "no" in rel_answer:
-                                                    response = "Sorry we can't find appropiate keywords for your query Please modify your query to blend with our services"
+                                                if len(answer) > 60:
+                                                    rel_answer = identify_answer(
+                                                        law_dict["personal-law"], answer
+                                                    ).content
+                                                    rel_answer = rel_answer.lower()
+                                                    if "no" in rel_answer:
+                                                        response = "Sorry we can't find appropiate keywords for your query Please modify your query to blend with our services"
+                                                    else:
+                                                        url = create_legal_url(
+                                                            "personal-law",
+                                                            option,
+                                                            law_dict,
+                                                            rel_answer,
+                                                            None,
+                                                        )
+                                                        response = f"""The appropiate keywords for query are : personal-law :{rel_answer} /
+                                                                        URL: {url}"""
                                                 else:
                                                     url = create_legal_url(
-                                                        "personal-law",
-                                                        option,
-                                                        law_dict,
-                                                        rel_answer,
-                                                        None,
+                                                        "personal-law", option, law_dict, answer, None
                                                     )
-                                                    response = f"""The appropiate keywords for query are : personal-law :{rel_answer} /
-                                                                    URL: {url}"""
-                                            else:
-                                                url = create_legal_url(
-                                                    "personal-law", option, law_dict, answer, None
-                                                )
-                                                response = f"The appropiate keywords for query are : personal-law :{answer} url :{url}"
-                                        st.session_state.generated.append(response)
-                                        with placeholder.container():
-                                            message(user_input, is_user=True, key=str(29) + "_user")
-                                            message(response, key=str(25))
+                                                    response = f"The appropiate keywords for query are : personal-law :{answer} url :{url}"
+                                            st.session_state.generated.append(response)
+                                            with placeholder.container():
+                                                message(user_input, is_user=True, key=str(29) + "_user")
+                                                message(response, key=str(25))
 
 
 

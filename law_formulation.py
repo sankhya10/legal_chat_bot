@@ -191,9 +191,9 @@ def create_lawyer_dict(file_path):
 
 
 def identify_answer(law_dict, answer):
-    propmt = f""" You are an expert in extracting any relevant keyword from a sentence which belongs to {law_dict}
-    Find relevant keyword in this
-    Answer: {answer}
+    propmt = f""" You are an expert in extracting a single best law related keyword from a query
+    Find a single keyword from a 
+    Query: {answer} based on {law_dict}
     If you can't find any keyword just emit NO!!
     """
     messages = [SystemMessage(content=propmt), HumanMessage(content="")]
@@ -210,7 +210,6 @@ def search_dict_pattern(extraction, query):
         dictionary_str = match.group()
         try:
             extracted_dictionary = ast.literal_eval(dictionary_str)
-            # print("extracted_dict",extracted_dictionary)
             if isinstance(extracted_dictionary, set):
                 return extracted_dictionary.pop()
             elif isinstance(extracted_dictionary, dict):
@@ -223,7 +222,14 @@ def search_dict_pattern(extraction, query):
                     value = select_value(extracted_dictionary, query)
                     return list(extracted_dictionary.keys())[0], value.content
             elif isinstance(extracted_dictionary, tuple):
-                return extracted_dictionary[0], extracted_dictionary[1]
+                if len(extracted_dictionary) > 2:
+                    last_element = extracted_dictionary[-1]
+                    if isinstance(last_element,dict):
+                        return list(last_element.keys())[0], last_element[list(last_element.keys())[0]][0]
+                    elif isinstance(last_element,set):
+                        return next(iter(last_element))
+                else:    
+                    return extracted_dictionary[0], extracted_dictionary[1]
         except  (SyntaxError, ValueError):
              pattern = r'\{[^{}]*\}'
              matches = re.findall(pattern, dictionary_str)
