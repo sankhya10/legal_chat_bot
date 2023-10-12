@@ -1,18 +1,10 @@
-from textwrap import indent
-from urllib import response
 import streamlit as st
 import pandas as pd
-
-# from turtle import onclick
-import itertools
-
-# from agent_calculation import *
-import pandas as pd
 from streamlit_chat import message
-from streamlit.components.v1 import html
 import os
-from langchain.chat_models import ChatOpenAI
 from law_formulation import *
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 
 st.set_page_config(
         page_title="Legally Yours: ChatBot",
@@ -47,22 +39,13 @@ def main():
         )
         st.header("")
 
-    with st.sidebar:
-        st.markdown(
-            "## How to use\n"
-            "1. Enter your [OpenAI API key](https://platform.openai.com/account/api-keys) below🔑\n"
-            "2. Optimized for GPT-4: 🚀 GPT-3 and 3.5 might encounter occasional quirks and problems\n"
-            "3. OpenAI Api-key 👇"
-        )
-        api_key_input = st.text_input(
-            "Open ai key",
-            type="password",
-            placeholder="Paste your OpenAI API key here (sk-...)",
-            help="You can get your API key from https://platform.openai.com/account/api-keys.",  # noqa: E501
-            label_visibility = "collapsed",
-            value=os.environ.get("OPENAI_API_KEY", None)
-            or st.session_state.get("OPENAI_API_KEY", ""),
-        )
+    
+    credential = DefaultAzureCredential()
+    client = SecretClient(vault_url=st.secrets["vault_url"], credential=credential)
+
+    
+    api_key = client.get_secret("openai-key")
+    api_key_input = api_key.value
 
 
 
