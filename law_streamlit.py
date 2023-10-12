@@ -12,6 +12,9 @@ st.set_page_config(
         layout="wide",
     )
 
+import os
+os.environ['AZURE_CLIENT_ID'] = '3f918f55-2fae-43cd-9bde-30415b3e416d'
+
 tabs_font_css = """
 <style>
 div[class*="stTextInput"] label p {
