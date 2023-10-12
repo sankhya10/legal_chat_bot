@@ -15,7 +15,7 @@ st.set_page_config(
 import os
 os.environ['AZURE_CLIENT_ID'] = '3f918f55-2fae-43cd-9bde-30415b3e416d'
 os.environ['AZURE_TENANT_ID'] = 'd02378ec-1688-46d5-8540-1c28b5f470f6'
-os.environ['AZURE_CLIENT_SECRET']= 'Arj8Q~6uEkG-Q8srjn7Lrd5ORih5xvyt.Us~icY8'
+os.environ['AZURE_CLIENT_SECRET']= 'c781cad3-cc1f-458c-9054-f31242e468b1'
 
 tabs_font_css = """
 <style>
