@@ -35,6 +35,20 @@ def create_llm(api_key_input):
     else:
         return False
 
+def further_refine(query):
+    prompt = f""" Paraphrase the following sentence:
+                    Sentence :{query}
+                    Emit a single new sentence in a list!
+                """
+    messages = [
+        SystemMessage(content=prompt),
+        HumanMessage(content=""),
+    ]
+
+    responses = model(messages)
+
+    return responses
+
 def outline_guided(keywords, query):
     prompt = f"""You are an expert in detecting whether a query is relevant to dictionary of keywords :{keywords}
     Is the following query relevant or not relevant ?
@@ -45,20 +59,6 @@ def outline_guided(keywords, query):
         SystemMessage(content=prompt),
         HumanMessage(content="Answer either relevant or not relevant"),
     ]
-
-    responses = model(messages)
-
-    return responses
-
-
-def refine_query(keywords, query):
-
-    context = f"You are an AI Bot for a Law company named as : Legally Yours. \
-                Your memory is only confined within the premisise of these keywords \
-                Your job is to analyse the user query and if you think the query is not relevant to the {keywords} \
-                 If you think query is relevant "
-
-    messages = [SystemMessage(content=context), HumanMessage(content=query)]
 
     responses = model(messages)
 
